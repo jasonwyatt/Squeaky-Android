@@ -9,6 +9,7 @@ import android.database.sqlite.SQLiteStatement;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -23,7 +24,7 @@ import co.jasonwyatt.squeaky.util.Logger;
 public class Database implements Migrator {
     private final Class<? extends DatabaseHelper> mHelperClass;
     private int mVersion = 1;
-    private ArrayList<Table> mTables = new ArrayList<>();
+    private HashMap<String, Table> mTables = new HashMap<>();
 
     private final VersionsTable mVersionsTable;
     private final String mName;
@@ -49,7 +50,9 @@ public class Database implements Migrator {
     }
 
     public void addTable(Table t) {
-        mTables.add(t);
+        if (!mTables.containsKey(t.getName())) {
+            mTables.put(t.getName(), t);
+        }
         mVersion += t.getVersion();
     }
 
@@ -74,15 +77,18 @@ public class Database implements Migrator {
         }
     }
 
+    public void close() {
+        mHelper.close();
+        mWritableDB.close();
+        mReadableDB.close();
+        mPrepared = false;
+    }
+
     public boolean isPrepared() {
         return mPrepared;
     }
 
-    public Cursor query(String stmt) {
-        return query(stmt, null);
-    }
-
-    public Cursor query(String stmt, Object[] bindArgs) {
+    public Cursor query(String stmt, Object... bindArgs) {
         if (!mPrepared) {
             throw new DatabaseException("Database "+getName()+" not prepared yet.");
         }
@@ -92,7 +98,7 @@ public class Database implements Migrator {
             for (int i = 0; i < bindArgs.length; i++) {
                 Object arg = bindArgs[i];
                 if (arg instanceof String) {
-                    args[i] = DatabaseUtils.sqlEscapeString((String) arg);
+                    args[i] = arg.toString();//DatabaseUtils.sqlEscapeString((String) arg);
                 } else {
                     args[i] = arg.toString();
                 }
@@ -104,7 +110,7 @@ public class Database implements Migrator {
         return result;
     }
 
-    private Cursor querySimple(SQLiteDatabase db, String stmt, Object[] bindArgs) {
+    private Cursor querySimple(SQLiteDatabase db, String stmt, Object... bindArgs) {
         String[] args = null;
         if (bindArgs != null) {
             args = new String[bindArgs.length];
@@ -123,7 +129,7 @@ public class Database implements Migrator {
         return result;
     }
 
-    public long insert(String stmt, Object[] bindArgs) {
+    public long insert(String stmt, Object... bindArgs) {
         SQLiteStatement statement = getWritableDB().compileStatement(stmt);
         bindArgs(statement, bindArgs);
         Logger.i(stmt+";", bindArgs);
@@ -134,7 +140,7 @@ public class Database implements Migrator {
         return updateBatch(new String[]{stmt}, null, false);
     }
 
-    public int update(String stmt, Object[] bindArgs) {
+    public int update(String stmt, Object... bindArgs) {
         return updateBatch(new String[] {stmt}, new Object[][] {bindArgs}, false);
     }
 
@@ -181,7 +187,7 @@ public class Database implements Migrator {
         return rows;
     }
 
-    private void updateSimple(SQLiteDatabase db, String stmt, Object[] bindArgs) {
+    private void updateSimple(SQLiteDatabase db, String stmt, Object... bindArgs) {
         if (bindArgs != null) {
             updateBatchSimple(db, new String[]{stmt}, new Object[][]{bindArgs});
         } else {
@@ -196,12 +202,15 @@ public class Database implements Migrator {
         }
 
         for (int i = 0; i < stmts.length; i++) {
+            if (!stmts[i].endsWith(";")) {
+                stmts[i] += ";";
+            }
             if (hasArgs && bindArgs[i] != null) {
+                Logger.i(stmts[i], bindArgs[i]);
                 db.execSQL(stmts[i], bindArgs[i]);
-                Logger.i(stmts[i]+";", bindArgs[i]);
             } else {
+                Logger.i(stmts[i]);
                 db.execSQL(stmts[i]);
-                Logger.i(stmts[i]+";");
             }
         }
     }
@@ -238,7 +247,7 @@ public class Database implements Migrator {
 
         ArrayList<String> queries = new ArrayList<>();
         HashMap<String, Integer> versions = new HashMap<>();
-        for (Table t : mTables) {
+        for (Table t : mTables.values()) {
             String [] createStmts = t.getCreateTable();
             for (String stmt : createStmts) {
                 queries.add(stmt);
@@ -277,7 +286,7 @@ public class Database implements Migrator {
     public void onUpgrade(SQLiteDatabase db) {
         Map<String, Integer> versions = mVersionsTable.getTableVersions(this, db);
 
-        for (Table t : mTables) {
+        for (Table t : mTables.values()) {
             if (versions.containsKey(t.getName())) {
                 // have a version, need to upgrade?
                 boolean changed = false;
@@ -288,14 +297,14 @@ public class Database implements Migrator {
                     updateBatchSimple(db, migrateStmts, null);
                 }
                 if (changed) {
-                    updateSimple(db, "UPDATE versions SET version = ? WHERE model = ?", new Object[]{t.getName(), t.getVersion()});
+                    updateSimple(db, "UPDATE versions SET version = ? WHERE model = ?", t.getVersion(), t.getName());
                 }
             } else {
                 // need to create.
                 Logger.d("Creating new table:", t.getName(), "at version", t.getVersion());
                 String[] createStmts = t.getCreateTable();
                 updateBatchSimple(db, createStmts, null);
-                updateSimple(db, "INSERT INTO versions (model, version) VALUES (?, ?)", new Object[]{t.getName(), t.getVersion()});
+                updateSimple(db, "INSERT INTO versions (model, version) VALUES (?, ?)", t.getName(), t.getVersion());
             }
         }
     }
@@ -304,7 +313,7 @@ public class Database implements Migrator {
     public void onDowngrade(SQLiteDatabase db) {
         Map<String, Integer> versions = mVersionsTable.getTableVersions(this, db);
 
-        for (Table t : mTables) {
+        for (Table t : mTables.values()) {
             if (versions.containsKey(t.getName())) {
                 // have a version, need to upgrade?
                 boolean changed = false;
@@ -315,14 +324,14 @@ public class Database implements Migrator {
                     updateBatchSimple(db, migrateStmts, null);
                 }
                 if (changed) {
-                    updateSimple(db, "UPDATE versions SET version = ? WHERE model = ?", new Object[]{t.getName(), t.getVersion()});
+                    updateSimple(db, "UPDATE versions SET version = ? WHERE model = ?", t.getName(), t.getVersion());
                 }
             } else {
                 // need to create.
                 Logger.d("Creating new table:", t.getName(), "at version", t.getVersion());
                 String[] createStmts = t.getCreateTable();
                 updateBatchSimple(db, createStmts, null);
-                updateSimple(db, "INSERT INTO versions (model, version) VALUES (?, ?)", new Object[]{t.getName(), t.getVersion()});
+                updateSimple(db, "INSERT INTO versions (model, version) VALUES (?, ?)", t.getName(), t.getVersion());
             }
         }
     }
@@ -335,8 +344,8 @@ public class Database implements Migrator {
         return mVersionsTable;
     }
 
-    public List<Table> getTables() {
-        return mTables;
+    public Collection<Table> getTables() {
+        return mTables.values();
     }
 
     public SQLiteDatabase getWritableDB() {
@@ -382,16 +391,17 @@ public class Database implements Migrator {
         }
 
         public int getTableVersion(Database db, SQLiteDatabase sqldb, String modelName) {
-            Cursor c = db.querySimple(sqldb, "SELECT version FROM versions WHERE model = ?", new Object[]{modelName});
+            Cursor c = db.querySimple(sqldb, "SELECT version FROM versions WHERE model = ?", modelName);
             int version = -1;
             while (c.moveToNext()) {
                 version = c.getInt(0);
             }
+            c.close();
             return version;
         }
 
         public Map<String, Integer> getTableVersions(Database db, SQLiteDatabase sqldb) {
-            Cursor c = db.querySimple(sqldb, "SELECT model, version FROM versions", null);
+            Cursor c = db.querySimple(sqldb, "SELECT model, version FROM versions");
             HashMap<String, Integer> result = new HashMap<>();
 
             int modelIndex = c.getColumnIndex("model");
@@ -401,6 +411,7 @@ public class Database implements Migrator {
                 result.put(c.getString(modelIndex), c.getInt(versionIndex));
             }
 
+            c.close();
             return result;
         }
     }

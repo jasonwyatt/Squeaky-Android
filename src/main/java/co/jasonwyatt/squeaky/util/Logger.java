@@ -59,23 +59,38 @@ public class Logger {
     }
 
     public static void dumpTables(Database db, int limit) {
-        Logger.i("+------------------------------------------------------------------------------+");
-        Logger.i("|                             Squeaky Table Dump                               |");
-        Logger.i("+------------------------------------------------------------------------------+");
-        dump(db, db.getVersionsTable(), 0);
+        StringBuilder builder = new StringBuilder();
+        builder.append("\n+------------------------------------------------------------------------------+\n");
+        builder.append("|                             Squeaky Table Dump                               |\n");
+        builder.append("+------------------------------------------------------------------------------+\n");
+        builder.append("\n");
+        dump(db, db.getVersionsTable(), 0, builder);
         for (Table t : db.getTables()) {
-            Logger.i("");
-            dump(db, t, limit);
+            builder.append("\n");
+            dump(db, t, limit, builder);
         }
-        Logger.i("");
-        Logger.i("--------------------------------------------------------------------------------");
+        builder.append("\n");
+        builder.append("--------------------------------------------------------------------------------");
+        i(builder.toString());
     }
 
     public static void dump(Database db, Table t) {
-        dump(db, t, 0);
+        StringBuilder builder = new StringBuilder();
+        dump(db, t, 0, builder);
+        i(builder.toString());
+    }
+
+    public static void dump(Database db, Table t, StringBuilder builder) {
+        dump(db, t, 0, builder);
     }
 
     public static void dump(Database db, Table t, int limit) {
+        StringBuilder builder = new StringBuilder();
+        dump(db, t, limit, builder);
+        i(builder.toString());
+    }
+
+    public static void dump(Database db, Table t, int limit, StringBuilder b) {
         String limitClause = "";
         if (limit > 0) {
             limitClause = " LIMIT "+limit;
@@ -123,6 +138,7 @@ public class Logger {
         }
 
         StringBuilder builder = new StringBuilder();
+        builder.append("Table: `"+t.getName()+"`\n");
         // opener.
         for (int i = 0; i < totalWidthWithBorders; i++) {
             if (i == 0 || i == totalWidthWithBorders-1) {
@@ -168,7 +184,8 @@ public class Logger {
             }
         }
 
-        Logger.i(builder.toString());
+        b.append(builder.toString());
+        b.append("\n");
         c.close();
     }
 
@@ -183,11 +200,7 @@ public class Logger {
                     if (!isFirst) {
                         sb2.append(", ");
                     }
-                    if (p instanceof String) {
-                        sb2.append(DatabaseUtils.sqlEscapeString(p.toString()));
-                    } else {
-                        sb2.append(p);
-                    }
+                    sb2.append(p);
                     isFirst = false;
                 }
                 sb2.append("] ");
