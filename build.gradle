@@ -18,35 +18,31 @@ android {
     buildToolsVersion "21.1.2"
 
     sourceSets {
-        main.setRoot('src/main')
-        androidTest.setRoot('src/test')
+        test.setRoot('src/androidTest')
     }
 
     defaultConfig {
         minSdkVersion 16
         testApplicationId "co.jasonwyatt.squeaky.test"
-        //testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         testInstrumentationRunner "android.test.InstrumentationTestRunner"
         testFunctionalTest true
     }
-
-    /*
-    testOptions {
-        unitTests.returnDefaultValues = true
-    }
-    */
 }
 repositories {
     mavenLocal()
     mavenCentral()
 }
 dependencies {
+    // These are actually what is used when testing.
     testCompile 'junit:junit:4.12'
     testCompile "org.assertj:assertj-core:1.7.0"
     testCompile("org.robolectric:robolectric:2.4") {
         exclude module: 'commons-logging'
         exclude module: 'httpclient'
     }
+
+    // Seems like these need to be here in order for Android Studio to pick up the libraries and
+    // allow for code completion and no-red-text.
     androidTestCompile 'junit:junit:4.12'
     androidTestCompile "org.assertj:assertj-core:1.7.0"
     androidTestCompile("org.robolectric:robolectric:2.4") {
