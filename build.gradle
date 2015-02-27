@@ -1,0 +1,41 @@
+buildscript {
+  repositories {
+    mavenLocal()
+    mavenCentral()
+  }
+  dependencies {
+    classpath 'com.android.tools.build:gradle:1.1.0'
+  }
+}
+
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion 21
+    buildToolsVersion "21.1.2"
+
+    sourceSets {
+        main.setRoot('src/main')
+        androidTest.setRoot('src/test')
+    }
+
+    defaultConfig {
+        minSdkVersion 11
+        testApplicationId "co.jasonwyatt.squeaky.test"
+        testInstrumentationRunner "android.test.InstrumentationTestRunner"
+    }
+
+    testOptions {
+        unitTests.returnDefaultValues = true
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    testCompile 'junit:junit:4.12'
+    testCompile 'org.mockito:mockito-core:1.9.5'
+}
