@@ -1,40 +1,45 @@
 package co.jasonwyatt.squeaky.test;
 
 import android.database.Cursor;
-import android.test.AndroidTestCase;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.Robolectric;
+import org.robolectric.RobolectricTestRunner;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.failBecauseExceptionWasNotThrown;
 
 import co.jasonwyatt.squeaky.Database;
 import co.jasonwyatt.squeaky.DatabaseException;
 
-/**
- * <a href="http://d.android.com/tools/testing/testing_android.html">Testing Fundamentals</a>
- */
-public class VersionsTableTest extends AndroidTestCase {
+@RunWith(RobolectricTestRunner.class)
+public class VersionsTableTest {
     private Database mDatabase;
 
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
-        mDatabase = new Database(getContext(), getClass().getSimpleName());
-    }
-
-    public void testPrepare() throws Exception {
-        assertFalse("isPrepared() should return false before preparation", mDatabase.isPrepared());
+    @Test
+    public void prepareTest() throws Exception {
+        mDatabase = new Database(Robolectric.application, getClass().getSimpleName());
+        assertThat(mDatabase.isPrepared()).isFalse();
         mDatabase.prepare();
-        assertTrue("isPrepared() should return true after preparation", mDatabase.isPrepared());
+        assertThat(mDatabase.isPrepared()).isTrue();
 
         try {
             mDatabase.prepare();
+            failBecauseExceptionWasNotThrown(DatabaseException.class);
         } catch (DatabaseException e) {
-            assertNotNull("prepare() should throw an exception if called after the database is already prepared", e);
         }
+
+        assertThat(mDatabase.getWritableDB()).isNotNull();
+        assertThat(mDatabase.getReadableDB()).isNotNull();
     }
 
+    @Test
     public void testEmptyVersionsTable() throws Exception {
+        mDatabase = new Database(Robolectric.application, getClass().getSimpleName());
         mDatabase.prepare();
-        assertTrue("isPrepared() should return true after preparation", mDatabase.isPrepared());
+        assertThat(mDatabase.isPrepared()).isTrue();
 
         Cursor c = mDatabase.query("SELECT * FROM versions");
-        assertEquals("No rows should be returned.", c.getCount(), 0);
+        assertThat(c.getCount()).isEqualTo(0);
     }
 }

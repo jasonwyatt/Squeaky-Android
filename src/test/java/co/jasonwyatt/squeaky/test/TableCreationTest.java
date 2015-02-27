@@ -2,24 +2,31 @@ package co.jasonwyatt.squeaky.test;
 
 import android.database.Cursor;
 
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.Robolectric;
+import org.robolectric.RobolectricTestRunner;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import co.jasonwyatt.squeaky.Database;
 import co.jasonwyatt.squeaky.Table;
 
-/**
- * Created by jason on 2/25/15.
- */
-public class TableCreationTest extends BaseTestCase {
+@RunWith(RobolectricTestRunner.class)
+public class TableCreationTest {
+    @Test
     public void testCreateTable() throws Exception {
+        Database db = new Database(Robolectric.application, getClass().getSimpleName());
         TestTable t = new TestTable();
-        getDatabase().addTable(t);
-        assertEquals("getTables().size() should be 1", getDatabase().getTables().size(), 1);
+        db.addTable(t);
+        assertThat(db.getTables().size()).isEqualTo(1);
 
-        getDatabase().prepare();
+        db.prepare();
 
-        Cursor c = getDatabase().query("SELECT model, version FROM versions");
-        assertEquals("There should be one record in `versions`", c.getCount(), 1);
+        Cursor c = db.query("SELECT model, version FROM versions");
+        assertThat(c.getCount()).isEqualTo(1);
         c.moveToNext();
-        assertEquals(c.getString(0), t.getName());
-        assertEquals(c.getInt(1), t.getVersion());
+        assertThat(c.getString(0)).isEqualToIgnoringCase(t.getName());
+        assertThat(c.getInt(1)).isEqualTo(t.getVersion());
     }
 
     public static class TestTable extends Table {

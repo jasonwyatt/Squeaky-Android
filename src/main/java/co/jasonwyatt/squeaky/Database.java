@@ -83,6 +83,9 @@ public class Database implements Migrator {
     }
 
     public Cursor query(String stmt, Object[] bindArgs) {
+        if (!mPrepared) {
+            throw new DatabaseException("Database "+getName()+" not prepared yet.");
+        }
         String[] args = null;
         if (bindArgs != null) {
             args = new String[bindArgs.length];
@@ -96,7 +99,7 @@ public class Database implements Migrator {
             }
         }
 
-        Cursor result = mReadableDB.rawQuery(stmt, args);
+        Cursor result = getReadableDB().rawQuery(stmt, args);
         Logger.i(stmt+";", args);
         return result;
     }
@@ -121,7 +124,7 @@ public class Database implements Migrator {
     }
 
     public long insert(String stmt, Object[] bindArgs) {
-        SQLiteStatement statement = mWritableDB.compileStatement(stmt);
+        SQLiteStatement statement = getWritableDB().compileStatement(stmt);
         bindArgs(statement, bindArgs);
         Logger.i(stmt+";", bindArgs);
         return statement.executeInsert();
@@ -154,12 +157,12 @@ public class Database implements Migrator {
         }
 
         if (withTransaction) {
-            mWritableDB.beginTransaction();
+            getWritableDB().beginTransaction();
         }
 
         int rows = 0;
         for (int i = 0; i < stmts.length; i++) {
-            SQLiteStatement statement = mWritableDB.compileStatement(stmts[i]);
+            SQLiteStatement statement = getWritableDB().compileStatement(stmts[i]);
             if (hasArgs) {
                 bindArgs(statement, bindArgs[i]);
             }
@@ -172,7 +175,7 @@ public class Database implements Migrator {
         }
 
         if (withTransaction) {
-            mWritableDB.endTransaction();
+            getWritableDB().endTransaction();
         }
 
         return rows;
@@ -334,6 +337,20 @@ public class Database implements Migrator {
 
     public List<Table> getTables() {
         return mTables;
+    }
+
+    public SQLiteDatabase getWritableDB() {
+        if (mWritableDB == null) {
+            mWritableDB = mHelper.getWritableDatabase();
+        }
+        return mWritableDB;
+    }
+
+    public SQLiteDatabase getReadableDB() {
+        if (mReadableDB == null) {
+            mReadableDB = mHelper.getReadableDatabase();
+        }
+        return mReadableDB;
     }
 
     public static class VersionsTable extends Table {

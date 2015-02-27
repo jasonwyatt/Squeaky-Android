@@ -1,14 +1,17 @@
 buildscript {
-  repositories {
-    mavenLocal()
-    mavenCentral()
-  }
-  dependencies {
-    classpath 'com.android.tools.build:gradle:1.1.0'
-  }
+    dependencies {
+        repositories {
+            mavenLocal()
+            mavenCentral()
+        }
+
+        classpath "com.android.tools.build:gradle:1.1.0"
+        classpath "org.robolectric:robolectric-gradle-plugin:1.0.0"
+    }
 }
 
 apply plugin: 'com.android.library'
+apply plugin: "org.robolectric"
 
 android {
     compileSdkVersion 21
@@ -20,22 +23,34 @@ android {
     }
 
     defaultConfig {
-        minSdkVersion 11
+        minSdkVersion 16
         testApplicationId "co.jasonwyatt.squeaky.test"
+        //testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         testInstrumentationRunner "android.test.InstrumentationTestRunner"
+        testFunctionalTest true
     }
 
+    /*
     testOptions {
         unitTests.returnDefaultValues = true
     }
+    */
 }
-
 repositories {
+    mavenLocal()
     mavenCentral()
 }
-
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
     testCompile 'junit:junit:4.12'
-    testCompile 'org.mockito:mockito-core:1.9.5'
+    testCompile "org.assertj:assertj-core:1.7.0"
+    testCompile("org.robolectric:robolectric:2.4") {
+        exclude module: 'commons-logging'
+        exclude module: 'httpclient'
+    }
+    androidTestCompile 'junit:junit:4.12'
+    androidTestCompile "org.assertj:assertj-core:1.7.0"
+    androidTestCompile("org.robolectric:robolectric:2.4") {
+        exclude module: 'commons-logging'
+        exclude module: 'httpclient'
+    }
 }
