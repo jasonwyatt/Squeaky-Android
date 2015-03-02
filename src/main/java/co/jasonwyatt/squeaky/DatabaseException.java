@@ -1,7 +1,8 @@
 package co.jasonwyatt.squeaky;
 
 /**
-* Created by jason on 2/25/15.
+ * Exception class that extends RuntimeException and is used by Squeaky to encapsulate errors and
+ * exceptions related to migration/creation/querying.
 */
 public class DatabaseException extends RuntimeException {
     public DatabaseException(String detailMessage) {

@@ -7,7 +7,12 @@ import android.database.sqlite.SQLiteOpenHelper;
 import co.jasonwyatt.squeaky.util.Logger;
 
 /**
- * Created by jason on 2/25/15.
+ * Base class used by {@link Database} for managing a connection to an SQLite database.<br/><br/>
+ *
+ * You can extend this class if you want to perform additional functionality after {@link Database}
+ * does its migrations. Be sure to call the super method at the beginning of your DatabaseHelper
+ * subclass's methods.
+ * @see android.database.sqlite.SQLiteOpenHelper
  */
 public class DatabaseHelper extends SQLiteOpenHelper {
     private final Migrator mMigrator;

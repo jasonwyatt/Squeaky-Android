@@ -22,7 +22,7 @@ public class TableCreationTest {
 
         db.prepare();
 
-        Cursor c = db.query("SELECT model, version FROM versions");
+        Cursor c = db.query("SELECT table_name, version FROM versions");
         assertThat(c.getCount()).isEqualTo(1);
         c.moveToNext();
         assertThat(c.getString(0)).isEqualToIgnoringCase(t.getName());

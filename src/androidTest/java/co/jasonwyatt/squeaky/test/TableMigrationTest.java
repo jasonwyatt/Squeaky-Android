@@ -30,7 +30,7 @@ public class TableMigrationTest {
         assertThat(db.getTables().size()).isEqualTo(1);
 
         db.prepare();
-        Cursor c = db.query("SELECT version FROM versions WHERE model = ?", t.getName());
+        Cursor c = db.query("SELECT version FROM versions WHERE table_name = ?", t.getName());
         c.moveToNext();
         assertThat(c.getColumnCount()).isEqualTo(1);
         assertThat(c.getInt(c.getColumnIndex("version"))).isEqualTo(1);
@@ -43,7 +43,7 @@ public class TableMigrationTest {
         db.addTable(t);
         db.prepare();
 
-        Cursor c2 = db.query("SELECT version FROM versions WHERE model = ?", t.getName());
+        Cursor c2 = db.query("SELECT version FROM versions WHERE table_name = ?", t.getName());
         c2.moveToNext();
         assertThat(c2.getInt(0)).isEqualTo(2);
         c2.close();
