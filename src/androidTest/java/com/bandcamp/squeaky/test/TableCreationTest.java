@@ -1,4 +1,4 @@
-package co.jasonwyatt.squeaky.test;
+package com.bandcamp.squeaky.test;
 
 import android.database.Cursor;
 
@@ -8,8 +8,8 @@ import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import co.jasonwyatt.squeaky.Database;
-import co.jasonwyatt.squeaky.Table;
+import com.bandcamp.squeaky.Database;
+import com.bandcamp.squeaky.Table;
 
 @RunWith(RobolectricTestRunner.class)
 public class TableCreationTest {
@@ -48,7 +48,7 @@ public class TableCreationTest {
         }
 
         @Override
-        public String[] getMigration(int versionA, int versionB) {
+        public String[] getMigration(int nextVersion) {
             return new String[0];
         }
     }

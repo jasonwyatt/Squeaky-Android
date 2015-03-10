@@ -1,4 +1,4 @@
-package co.jasonwyatt.squeaky;
+package com.bandcamp.squeaky;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -15,7 +15,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-import co.jasonwyatt.squeaky.util.Logger;
+import com.bandcamp.squeaky.util.Logger;
 
 /**
  * Database is the central class in Squeaky.  Instances of {@link Database} are responsible for
@@ -26,10 +26,10 @@ import co.jasonwyatt.squeaky.util.Logger;
  * will trigger any necessary migrations and will place the Database instance in to a state where
  * it is ready to accept queries.
  */
-public class Database implements Migrator {
+public class Database {
     private static final String DEFAULT_VERSIONS_TABLE_NAME = "versions";
     private final Class<? extends DatabaseHelper> mHelperClass;
-    private int mVersion = 1;
+    private static final int SQLITE_DB_VERSION = 1;
     private HashMap<String, Table> mTables = new HashMap<>();
 
     private final VersionsTable mVersionsTable;
@@ -104,7 +104,6 @@ public class Database implements Migrator {
         if (!mTables.containsKey(t.getName())) {
             mTables.put(t.getName(), t);
         }
-        mVersion += t.getVersion();
     }
 
     /**
@@ -120,10 +119,11 @@ public class Database implements Migrator {
             throw new DatabaseException("Cannot re-prepare a prepared database!");
         }
         try {
-            Constructor<? extends DatabaseHelper> c = mHelperClass.getDeclaredConstructor(Context.class, String.class, int.class, Migrator.class);
-            mHelper = c.newInstance(mContext, mName, mVersion, this);
+            Constructor<? extends DatabaseHelper> c = mHelperClass.getDeclaredConstructor(Context.class, String.class, int.class);
+            mHelper = c.newInstance(mContext, mName, SQLITE_DB_VERSION);
             mWritableDB = mHelper.getWritableDatabase();
             mReadableDB = mHelper.getReadableDatabase();
+            doMigrations(mWritableDB);
             mPrepared = true;
         } catch (NoSuchMethodException e) {
             throw new DatabaseException("Provided database helper class does not expose a constructor of the form (Context, String, int)", e);
@@ -324,49 +324,21 @@ public class Database implements Migrator {
         }
     }
 
-    @Override
-    public void onCreate(SQLiteDatabase db) {
-        updateBatchSimple(db, mVersionsTable.getCreateTable(), null);
-
-        ArrayList<String> queries = new ArrayList<>();
-        HashMap<String, Integer> versions = new HashMap<>();
-        for (Table t : mTables.values()) {
-            String [] createStmts = t.getCreateTable();
-            for (String stmt : createStmts) {
-                queries.add(stmt);
+    private void doMigrations(SQLiteDatabase db) {
+        Cursor c = db.rawQuery("SELECT name FROM sqlite_master WHERE type='table'", null);
+        boolean needVersionsTable = true;
+        while ( c.moveToNext() ) {
+            if (c.getString(0).equals(mVersionsTable.getName())) {
+                needVersionsTable = false;
+                break;
             }
+        }
+        c.close();
 
-            versions.put(t.getName(), t.getVersion());
+        if (needVersionsTable) {
+            updateBatchSimple(db, mVersionsTable.getCreateTable(), null);
         }
 
-        Object[] versionArgs = new Object[versions.size()*2];
-        Set<String> keys = versions.keySet();
-        Iterator<String> keyIter = keys.iterator();
-        StringBuilder versionsBuilder = new StringBuilder();
-        for (int i = 0; i < keys.size(); i++) {
-            String model = keyIter.next();
-            versionArgs[2*i] = model;
-            versionArgs[2*i+1] = versions.get(model);
-
-            if (i != 0) {
-                versionsBuilder.append(", ");
-            }
-            versionsBuilder.append("(?, ?)");
-        }
-        if (versions.size() > 0) {
-            queries.add("INSERT INTO "+mVersionsTable.getName()+" (table_name, version) VALUES " + versionsBuilder.toString());
-        }
-
-        Object[][] args = new Object[queries.size()][];
-        if (versions.size() > 0) {
-            args[queries.size() - 1] = versionArgs;
-        }
-
-        updateBatchSimple(db, queries.toArray(new String[queries.size()]), args);
-    }
-
-    @Override
-    public void onUpgrade(SQLiteDatabase db) {
         Map<String, Integer> versions = mVersionsTable.getTableVersions(db);
 
         for (Table t : mTables.values()) {
@@ -376,38 +348,11 @@ public class Database implements Migrator {
                 for (int currentVersion = versions.get(t.getName()); currentVersion < t.getVersion(); currentVersion++) {
                     changed = true;
                     Logger.d("Upgrading", t.getName(), "from", "v"+currentVersion, "to", "v"+(currentVersion+1));
-                    String[] migrateStmts = t.getMigration(currentVersion, currentVersion+1);
+                    String[] migrateStmts = t.getMigration(currentVersion+1);
                     updateBatchSimple(db, migrateStmts, null);
                 }
                 if (changed) {
                     updateSimple(db, "UPDATE "+mVersionsTable.getName()+" SET version = ? WHERE table_name = ?", t.getVersion(), t.getName());
-                }
-            } else {
-                // need to create.
-                Logger.d("Creating new table:", t.getName(), "at version", t.getVersion());
-                String[] createStmts = t.getCreateTable();
-                updateBatchSimple(db, createStmts, null);
-                updateSimple(db, "INSERT INTO "+mVersionsTable.getName()+" (table_name, version) VALUES (?, ?)", t.getName(), t.getVersion());
-            }
-        }
-    }
-
-    @Override
-    public void onDowngrade(SQLiteDatabase db) {
-        Map<String, Integer> versions = mVersionsTable.getTableVersions(db);
-
-        for (Table t : mTables.values()) {
-            if (versions.containsKey(t.getName())) {
-                // have a version, need to upgrade?
-                boolean changed = false;
-                for (int currentVersion = versions.get(t.getName()); currentVersion > t.getVersion(); currentVersion--) {
-                    changed = true;
-                    Logger.d("Downgrading", t.getName(), "from", "v"+currentVersion, "to", "v"+(currentVersion+1));
-                    String[] migrateStmts = t.getMigration(currentVersion, currentVersion-1);
-                    updateBatchSimple(db, migrateStmts, null);
-                }
-                if (changed) {
-                    updateSimple(db, "UPDATE "+mVersionsTable.getName()+" SET version = ? WHERE table_name = ?", t.getName(), t.getVersion());
                 }
             } else {
                 // need to create.
@@ -499,7 +444,7 @@ public class Database implements Migrator {
         }
 
         @Override
-        public String[] getMigration(int versionA, int versionB) {
+        public String[] getMigration(int nextVersion) {
             return new String[0];
         }
 

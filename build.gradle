@@ -23,7 +23,7 @@ android {
 
     defaultConfig {
         minSdkVersion 16
-        testApplicationId "co.jasonwyatt.squeaky.test"
+        testApplicationId "com.bandcamp.squeaky.test"
         testInstrumentationRunner "android.test.InstrumentationTestRunner"
         testFunctionalTest true
     }

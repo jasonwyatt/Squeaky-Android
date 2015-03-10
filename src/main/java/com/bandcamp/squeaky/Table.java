@@ -1,4 +1,4 @@
-package co.jasonwyatt.squeaky;
+package com.bandcamp.squeaky;
 
 /**
  * SQLite table definition class.  Extend {@link Table} for each of your project's models.
@@ -29,12 +29,11 @@ public abstract class Table {
     /**
      * Get an array of SQL statements used to migrate the table from its current version to another
      * version.
-     * @param versionA Current version of the table.
-     * @param versionB Next version of the table. Not necessarily the version provided by
+     * @param nextVersion Next version of the table. Not necessarily the version provided by
      *                 {@link #getVersion()} (especially if the current version in the DB
      *                 is more than one
      *                 version behind the result of {@link #getVersion()}.
      * @return SQL statements used to migrate the table.
      */
-    public abstract String[] getMigration(int versionA, int versionB);
+    public abstract String[] getMigration(int nextVersion);
 }

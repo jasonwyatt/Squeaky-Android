@@ -1,9 +1,8 @@
-package co.jasonwyatt.squeaky.test;
+package com.bandcamp.squeaky.test;
 
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -17,10 +16,10 @@ import java.io.ByteArrayOutputStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import co.jasonwyatt.squeaky.BlobValue;
-import co.jasonwyatt.squeaky.Database;
-import co.jasonwyatt.squeaky.Table;
-import co.jasonwyatt.squeaky.util.Logger;
+import com.bandcamp.squeaky.BlobValue;
+import com.bandcamp.squeaky.Database;
+import com.bandcamp.squeaky.Table;
+import com.bandcamp.squeaky.util.Logger;
 
 @RunWith(RobolectricTestRunner.class)
 public class BlobColumnTest {
@@ -77,7 +76,7 @@ public class BlobColumnTest {
         }
 
         @Override
-        public String[] getMigration(int versionA, int versionB) {
+        public String[] getMigration(int nextVersion) {
             return new String[0];
         }
     }

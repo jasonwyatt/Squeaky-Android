@@ -1,4 +1,4 @@
-package co.jasonwyatt.squeaky.test;
+package com.bandcamp.squeaky.test;
 
 import android.database.Cursor;
 
@@ -9,8 +9,8 @@ import org.robolectric.RobolectricTestRunner;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.failBecauseExceptionWasNotThrown;
 
-import co.jasonwyatt.squeaky.Database;
-import co.jasonwyatt.squeaky.DatabaseException;
+import com.bandcamp.squeaky.Database;
+import com.bandcamp.squeaky.DatabaseException;
 
 @RunWith(RobolectricTestRunner.class)
 public class VersionsTableTest {
