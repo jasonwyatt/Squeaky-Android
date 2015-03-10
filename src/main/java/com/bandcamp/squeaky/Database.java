@@ -161,7 +161,7 @@ public class Database {
      * @return An instance of {@link android.database.Cursor} giving you access to the results of
      *          the query.
      */
-    public Cursor query(String stmt, Object... bindArgs) {
+    public synchronized Cursor query(String stmt, Object... bindArgs) {
         if (!mPrepared) {
             throw new DatabaseException("Database "+getName()+" not prepared yet.");
         }
@@ -210,7 +210,7 @@ public class Database {
      * @param bindArgs Arguments to bind to '?'s in the query.
      * @return Value of the new record's <code>rowid</code>/<code>_id</code> column.
      */
-    public long insert(String stmt, Object... bindArgs) {
+    public synchronized long insert(String stmt, Object... bindArgs) {
         SQLiteStatement statement = getWritableDB().compileStatement(stmt);
         bindArgs(statement, bindArgs);
         Logger.i(stmt+";", bindArgs);
@@ -223,7 +223,7 @@ public class Database {
      * @param bindArgs Arguments to bind to '?'s in the query.
      * @return Number of affected rows.
      */
-    public int update(String stmt, Object... bindArgs) {
+    public synchronized int update(String stmt, Object... bindArgs) {
         if (bindArgs == null) {
             return updateBatch(new String[] {stmt}, null, false);
         }
@@ -239,7 +239,7 @@ public class Database {
      * @param withTransaction Whether or not to execute the updates within a transaction.
      * @return Number of updated records.
      */
-    public int updateBatch(String[] stmts, Object[][] bindArgs, boolean withTransaction) {
+    public synchronized int updateBatch(String[] stmts, Object[][] bindArgs, boolean withTransaction) {
         boolean hasArgs = bindArgs != null;
         if (hasArgs && bindArgs.length != stmts.length) {
             throw new DatabaseException("bindArgs.length != stmts.length");
