@@ -26,7 +26,7 @@ databases.
 
 ### Define your Tables
 
-    import co.jasonwyatt.squeaky.Table
+    import com.bandcamp.squeaky.Table
 
     public class TodosTable extends Table {
         @Override
@@ -84,7 +84,7 @@ databases.
 
 Modify your Table definition class:
 
-    import co.jasonwyatt.squeaky.Table
+    import com.bandcamp.squeaky.Table
 
     public class TodosTable extends Table {
         @Override
