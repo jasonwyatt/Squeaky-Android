@@ -50,7 +50,7 @@ databases.
         }
 
         @Override
-        public String[] getMigration(int versionA, int versionB) {
+        public String[] getMigration(int nextVersion) {
             return new String[0];
         }
     }
@@ -109,8 +109,8 @@ Modify your Table definition class:
         }
 
         @Override
-        public String[] getMigration(int versionA, int versionB) {
-            if (versionA == 1 && versionB == 2) {
+        public String[] getMigration(int nextVersion) {
+            if (nextVersion == 2) {
                 return new String[] {
                     "ALTER TABLE todos ADD COLUMN due_date INTEGER"
                 };
