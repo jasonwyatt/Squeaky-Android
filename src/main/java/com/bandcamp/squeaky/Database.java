@@ -318,6 +318,8 @@ public class Database {
                 statement.bindNull(i+1);
             } else if (o instanceof BlobValue) {
                 statement.bindBlob(i+1, ((BlobValue) o).getBytes());
+            } else if (o instanceof Boolean) {
+                statement.bindLong(i+1, (Boolean)o ? 1 : 0);
             } else {
                 statement.bindString(i+1, o.toString());
             }
