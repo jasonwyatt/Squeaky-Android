@@ -312,8 +312,10 @@ public class Database {
                 statement.bindLong(i+1, (Integer) o);
             } else if (o instanceof Long) {
                 statement.bindLong(i + 1, (Long) o);
-            } else if (o instanceof Double || o instanceof Float) {
+            } else if (o instanceof Double) {
                 statement.bindDouble(i+1, (Double) o);
+            } else if (o instanceof Float) {
+                statement.bindDouble(i+1, (double)((Float) o).floatValue());
             } else if (o == null) {
                 statement.bindNull(i+1);
             } else if (o instanceof BlobValue) {
