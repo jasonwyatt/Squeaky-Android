@@ -1,24 +1,24 @@
 package com.bandcamp.squeaky.test;
 
 import android.database.Cursor;
+import android.support.test.InstrumentationRegistry;
+import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.robolectric.Robolectric;
-import org.robolectric.RobolectricTestRunner;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.failBecauseExceptionWasNotThrown;
 
 import com.bandcamp.squeaky.Database;
 import com.bandcamp.squeaky.DatabaseException;
 
-@RunWith(RobolectricTestRunner.class)
+@RunWith(AndroidJUnit4.class)
 public class VersionsTableTest {
     private Database mDatabase;
 
     @Test
     public void prepareTest() throws Exception {
-        mDatabase = new Database(Robolectric.application, getClass().getSimpleName());
+        mDatabase = new Database(InstrumentationRegistry.getContext(), getClass().getSimpleName());
         assertThat(mDatabase.isPrepared()).isFalse();
         mDatabase.prepare();
         assertThat(mDatabase.isPrepared()).isTrue();
@@ -35,7 +35,7 @@ public class VersionsTableTest {
 
     @Test
     public void testEmptyVersionsTable() throws Exception {
-        mDatabase = new Database(Robolectric.application, getClass().getSimpleName());
+        mDatabase = new Database(InstrumentationRegistry.getContext(), getClass().getSimpleName());
         mDatabase.prepare();
         assertThat(mDatabase.isPrepared()).isTrue();
 

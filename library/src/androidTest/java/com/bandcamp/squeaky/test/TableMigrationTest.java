@@ -1,13 +1,11 @@
 package com.bandcamp.squeaky.test;
 
 import android.database.Cursor;
+import android.support.test.InstrumentationRegistry;
+import android.support.test.runner.AndroidJUnit4;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.robolectric.Robolectric;
-import org.robolectric.RobolectricTestRunner;
-import org.robolectric.shadows.ShadowLog;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -15,16 +13,12 @@ import com.bandcamp.squeaky.Database;
 import com.bandcamp.squeaky.Table;
 import com.bandcamp.squeaky.util.Logger;
 
-@RunWith(RobolectricTestRunner.class)
+@RunWith(AndroidJUnit4.class)
 public class TableMigrationTest {
-    @Before
-    public void setUp() throws Exception {
-        ShadowLog.stream = System.out;
-    }
 
     @Test
     public void testCreationAndUpgrade() {
-        Database db = new Database(Robolectric.application, getClass().getSimpleName());
+        Database db = new Database(InstrumentationRegistry.getContext(), getClass().getSimpleName());
         TestTable t = new TestTable();
         db.addTable(t);
         assertThat(db.getTables().size()).isEqualTo(1);
