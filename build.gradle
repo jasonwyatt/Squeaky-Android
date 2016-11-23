@@ -1,52 +1,23 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+
 buildscript {
+    repositories {
+        jcenter()
+    }
     dependencies {
-        repositories {
-            mavenLocal()
-            mavenCentral()
-        }
-
-        classpath "com.android.tools.build:gradle:1.1.0"
-        classpath "org.robolectric:robolectric-gradle-plugin:1.0.0"
+        classpath 'com.android.tools.build:gradle:2.2.2'
+        classpath 'com.github.dcendents:android-maven-gradle-plugin:1.5'
+        // NOTE: Do not place your application dependencies here; they belong
+        // in the individual module build.gradle files
     }
 }
 
-apply plugin: 'com.android.library'
-apply plugin: "org.robolectric"
-
-android {
-    compileSdkVersion 21
-    buildToolsVersion "21.1.2"
-
-    sourceSets {
-        test.setRoot('src/androidTest')
-    }
-
-    defaultConfig {
-        minSdkVersion 16
-        testApplicationId "com.bandcamp.squeaky.test"
-        testInstrumentationRunner "android.test.InstrumentationTestRunner"
-        testFunctionalTest true
+allprojects {
+    repositories {
+        jcenter()
     }
 }
-repositories {
-    mavenLocal()
-    mavenCentral()
-}
-dependencies {
-    // These are actually what is used when testing.
-    testCompile 'junit:junit:4.12'
-    testCompile "org.assertj:assertj-core:1.7.0"
-    testCompile("org.robolectric:robolectric:2.4") {
-        exclude module: 'commons-logging'
-        exclude module: 'httpclient'
-    }
 
-    // Seems like these need to be here in order for Android Studio to pick up the libraries and
-    // allow for code completion and no-red-text.
-    androidTestCompile 'junit:junit:4.12'
-    androidTestCompile "org.assertj:assertj-core:1.7.0"
-    androidTestCompile("org.robolectric:robolectric:2.4") {
-        exclude module: 'commons-logging'
-        exclude module: 'httpclient'
-    }
+task clean(type: Delete) {
+    delete rootProject.buildDir
 }
