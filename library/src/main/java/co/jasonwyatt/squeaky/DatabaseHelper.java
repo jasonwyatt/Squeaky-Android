@@ -1,10 +1,10 @@
-package com.bandcamp.squeaky;
+package co.jasonwyatt.squeaky;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-import com.bandcamp.squeaky.util.Logger;
+import co.jasonwyatt.squeaky.util.Logger;
 
 /**
  * Base class used by {@link Database} for managing a connection to an SQLite database.<br/><br/>

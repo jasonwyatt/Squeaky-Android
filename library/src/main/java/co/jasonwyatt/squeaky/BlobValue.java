@@ -1,4 +1,4 @@
-package com.bandcamp.squeaky;
+package co.jasonwyatt.squeaky;
 
 /**
  * BlobValue is an interface used to designate a value passed to

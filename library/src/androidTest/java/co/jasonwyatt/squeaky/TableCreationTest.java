@@ -1,4 +1,4 @@
-package com.bandcamp.squeaky.test;
+package co.jasonwyatt.squeaky;
 
 import android.database.Cursor;
 import android.support.test.InstrumentationRegistry;
@@ -8,8 +8,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.bandcamp.squeaky.Database;
-import com.bandcamp.squeaky.Table;
+import co.jasonwyatt.squeaky.Database;
+import co.jasonwyatt.squeaky.Table;
 
 /**
  * @author jason

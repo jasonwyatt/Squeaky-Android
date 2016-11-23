@@ -1,4 +1,4 @@
-package com.bandcamp.squeaky;
+package co.jasonwyatt.squeaky;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -8,14 +8,11 @@ import android.database.sqlite.SQLiteStatement;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
 
-import com.bandcamp.squeaky.util.Logger;
+import co.jasonwyatt.squeaky.util.Logger;
 
 /**
  * Database is the central class in Squeaky.  Instances of {@link Database} are responsible for

@@ -1,4 +1,4 @@
-package com.bandcamp.squeaky;
+package co.jasonwyatt.squeaky;
 
 /**
  * SQLite table definition class.  Extend {@link Table} for each of your project's models.

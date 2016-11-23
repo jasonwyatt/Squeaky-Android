@@ -1,4 +1,4 @@
-package com.bandcamp.squeaky;
+package co.jasonwyatt.squeaky;
 
 /**
  * Exception class that extends RuntimeException and is used by Squeaky to encapsulate errors and

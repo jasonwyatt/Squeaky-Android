@@ -5,28 +5,32 @@ SQLite is simple and lightweight; it follows that managing SQLite databases on A
 Squeaky strives to be a straightforward approach to creating, migrating, and accessing SQLite
 databases.
 
-## Installation
+## Setup
 
-### Build with Gradle
+Add [jitpack.io](https://jitpack.io) to your root build.gradle at the end of repositories:
 
-#### Prerequesites
+```groovy
+allprojects {
+    repositories {
+        ...
+        maven { url "https://jitpack.io" }
+    }
+}
+```
 
-* Gradle
-* Java JDK 1.7
-* Android SDK v21
+Add SRML as a dependency to your app's build.gradle:
 
-#### Steps
-
-1. Clone this repository to your machine.
-1. `cd Android-Squeaky`
-1. `gradle build`
-1. `cp build/output/aar/Squeaky-release.aar [your project's lib folder]`
+```groovy
+dependencies {
+    compile 'com.github.jasonwyatt:squeaky-android:-SNAPSHOT'
+}
+```
 
 ## Getting Started
 
 ### Define your Tables
 
-    import com.bandcamp.squeaky.Table
+    import co.jasonwyatt.squeaky.Table
 
     public class TodosTable extends Table {
         @Override
@@ -84,7 +88,7 @@ databases.
 
 Modify your Table definition class:
 
-    import com.bandcamp.squeaky.Table
+    import co.jasonwyatt.squeaky.Table
 
     public class TodosTable extends Table {
         @Override

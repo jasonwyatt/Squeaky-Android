@@ -1,12 +1,12 @@
-package com.bandcamp.squeaky.util;
+package co.jasonwyatt.squeaky.util;
 
 import android.database.Cursor;
 import android.util.Log;
 
 import java.util.ArrayList;
 
-import com.bandcamp.squeaky.Database;
-import com.bandcamp.squeaky.Table;
+import co.jasonwyatt.squeaky.Database;
+import co.jasonwyatt.squeaky.Table;
 
 /**
  * Created by jason on 2/25/15.

@@ -1,24 +1,35 @@
-package com.bandcamp.squeaky.test;
+package co.jasonwyatt.squeaky;
 
 import android.database.Cursor;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.bandcamp.squeaky.Database;
-import com.bandcamp.squeaky.Table;
-import com.bandcamp.squeaky.util.Logger;
+import co.jasonwyatt.squeaky.util.Logger;
 
 @RunWith(AndroidJUnit4.class)
 public class TableMigrationTest {
+    private Database db;
+
+    @Before
+    public void setUp() {
+        db = new Database(InstrumentationRegistry.getContext(), getClass().getSimpleName());
+    }
+
+    @After
+    public void tearDown() {
+        db.update("DROP TABLE test_table");
+        db.update("DROP TABLE versions");
+    }
 
     @Test
     public void testCreationAndUpgrade() {
-        Database db = new Database(InstrumentationRegistry.getContext(), getClass().getSimpleName());
         TestTable t = new TestTable();
         db.addTable(t);
         assertThat(db.getTables().size()).isEqualTo(1);
