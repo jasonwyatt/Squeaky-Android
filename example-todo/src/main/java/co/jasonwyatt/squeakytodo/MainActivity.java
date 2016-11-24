@@ -1,28 +1,33 @@
 package co.jasonwyatt.squeakytodo;
 
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.util.DiffUtil;
+import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
-import android.view.View;
-import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.TextView;
 
+import com.yarolegovich.lovelydialog.LovelyTextInputDialog;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
+
+import co.jasonwyatt.squeakytodo.event.DeleteEvent;
 
 public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<List<Todo>>, Observer {
 
@@ -50,11 +55,25 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                new LovelyTextInputDialog(view.getContext())
+                        .setConfirmButton(R.string.save, new LovelyTextInputDialog.OnTextInputConfirmListener() {
+                            @Override
+                            public void onTextInputConfirmed(String text) {
+                                sObservable.notifyObservers(new Todo(text.trim()));
+                            }
+                        })
+                        .show();
+            }
+        });
 
         RecyclerView rv = (RecyclerView) findViewById(R.id.content_main);
         rv.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
         mAdapter = new Adapter();
         rv.setAdapter(mAdapter);
+        rv.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
     }
 
     @Override
@@ -86,10 +105,21 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     @Override
     public void update(Observable observable, Object o) {
         if (o instanceof Todo) {
-            Todo todo = (Todo) o;
-            if (todo.getId() >= 0) {
-                AsyncTask.execute(new Todo.SaveRunnable(App.getInstance().getDB(), todo));
-            }
+            new Todo.SaveTask(App.getInstance().getDB(), (Todo) o) {
+                @Override
+                protected void onPostExecute(List<Todo> todos) {
+                    mAdapter.setTodoItems(todos);
+                }
+            }.execute();
+        }
+
+        if (o instanceof DeleteEvent) {
+            new Todo.DeleteTask(App.getInstance().getDB(), ((DeleteEvent) o).getItem()) {
+                @Override
+                protected void onPostExecute(List<Todo> todos) {
+                    mAdapter.setTodoItems(todos);
+                }
+            }.execute();
         }
     }
 
@@ -100,9 +130,47 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             mTodoItems = new ArrayList<>(0);
         }
 
-        void setTodoItems(List<Todo> todoItems) {
+        void setTodoItems(final List<Todo> todoItems) {
+            DiffUtil.DiffResult res = DiffUtil.calculateDiff(new DiffUtil.Callback() {
+                @Override
+                public int getOldListSize() {
+                    return mTodoItems.size();
+                }
+
+                @Override
+                public int getNewListSize() {
+                    return todoItems.size();
+                }
+
+                @Override
+                public boolean areItemsTheSame(int oldItemPosition, int newItemPosition) {
+                    return mTodoItems.get(oldItemPosition).getId() == todoItems.get(newItemPosition).getId();
+                }
+
+                @Override
+                public boolean areContentsTheSame(int oldItemPosition, int newItemPosition) {
+                    Todo oude = mTodoItems.get(oldItemPosition);
+                    Todo nieuw = todoItems.get(newItemPosition);
+
+                    boolean contentEquals = false;
+                    if (oude.getContent() == null && nieuw.getContent() == null) {
+                        contentEquals = true;
+                    } else if (oude.getContent() !=  null && nieuw.getContent() != null && oude.getContent().equals(nieuw.getContent())) {
+                        contentEquals = true;
+                    }
+
+                    boolean finishedEquals = false;
+                    if (oude.getFinishedDate() == null && nieuw.getFinishedDate() == null) {
+                        finishedEquals = true;
+                    } else if (oude.getFinishedDate() != null && nieuw.getFinishedDate() != null && oude.getFinishedDate().equals(nieuw.getFinishedDate())) {
+                        finishedEquals = true;
+                    }
+
+                    return contentEquals && finishedEquals;
+                }
+            });
             mTodoItems = todoItems;
-            notifyDataSetChanged();
+            res.dispatchUpdatesTo(this);
         }
 
         @Override
@@ -153,7 +221,19 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
         @Override
         public boolean onLongClick(View view) {
-            return false;
+            PopupMenu menu = new PopupMenu(view.getContext(), view);
+            menu.inflate(R.menu.item_popup);
+            menu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                @Override
+                public boolean onMenuItemClick(MenuItem item) {
+                    if (item.getItemId() == R.id.delete) {
+                        sObservable.notifyObservers(new DeleteEvent(mItem));
+                    }
+                    return false;
+                }
+            });
+            menu.show();
+            return true;
         }
 
         @Override

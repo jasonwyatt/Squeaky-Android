@@ -2,9 +2,9 @@ package co.jasonwyatt.squeakytodo;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.os.AsyncTask;
 import android.support.annotation.WorkerThread;
 import android.support.v4.content.AsyncTaskLoader;
-import android.support.v4.content.Loader;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -28,6 +28,13 @@ public class Todo {
         mFinishedDate = finishedDate;
     }
 
+    public Todo(String s) {
+        mId = -1;
+        mCreateDate = System.currentTimeMillis();
+        mContent = s;
+        mFinishedDate = null;
+    }
+
     public int getId() {
         return mId;
     }
@@ -48,16 +55,22 @@ public class Todo {
         mFinishedDate = date;
     }
 
+    @SuppressWarnings("WeakerAccess")
     @WorkerThread
     public static void saveTodo(Database db, Todo todo) {
-        db.update("UPDATE todos SET create_date = ?, content = ?, finished_date = ? WHERE rowid = ?", todo.getCreateDate(), todo.getContent(), todo.getFinishedDate(), todo.getId());
+        if (todo.getId() >= 0) {
+            db.update("UPDATE todos SET create_date = ?, content = ?, finished_date = ? WHERE rowid = ?", todo.getCreateDate(), todo.getContent(), todo.getFinishedDate(), todo.getId());
+        } else {
+            db.insert("INSERT INTO todos (create_date, content) VALUES (?, ?)", todo.getCreateDate(), todo.getContent());
+        }
     }
 
+    @SuppressWarnings("WeakerAccess")
     @WorkerThread
     public static List<Todo> getTodos(Database db) {
         List<Todo> todos = new LinkedList<>();
 
-        Cursor c = db.query("SELECT rowid, create_date, content, finished_date FROM todos ORDER BY finished_date ASC, create_date ASC");
+        Cursor c = db.query("SELECT rowid, create_date, content, finished_date, case when finished_date IS NULL then 0 else 1 end AS is_finished FROM todos ORDER BY is_finished ASC, finished_date DESC, create_date ASC");
         try {
             while (c.moveToNext()) {
                 todos.add(new Todo(c.getInt(0), c.getLong(1), c.getString(2), c.isNull(3) ? null : c.getLong(3)));
@@ -69,22 +82,47 @@ public class Todo {
         return todos;
     }
 
-    public static class SaveRunnable implements Runnable {
+    @SuppressWarnings("WeakerAccess")
+    @WorkerThread
+    public static void deleteTodo(Database db, Todo todo) {
+        if (todo.getId() >= 0) {
+            db.update("DELETE FROM todos WHERE rowid = ?", todo.getId());
+        }
+    }
+
+    static class SaveTask extends AsyncTask<Void, Void, List<Todo>> {
         private final Database mDB;
         private final Todo mTodo;
 
-        public SaveRunnable(Database db, Todo todo) {
+        SaveTask(Database db, Todo todo) {
             mDB = db;
             mTodo = todo;
         }
 
         @Override
-        public void run() {
+        protected List<Todo> doInBackground(Void... voids) {
             saveTodo(mDB, mTodo);
+            return getTodos(mDB);
         }
     }
 
-    public static class Table extends co.jasonwyatt.squeaky.Table {
+    static class DeleteTask extends AsyncTask<Void, Void, List<Todo>> {
+        private final Database mDB;
+        private final Todo mTodo;
+
+        DeleteTask(Database db, Todo todo) {
+            mDB = db;
+            mTodo = todo;
+        }
+
+        @Override
+        protected List<Todo> doInBackground(Void... voids) {
+            deleteTodo(mDB, mTodo);
+            return getTodos(mDB);
+        }
+    }
+
+    static class Table extends co.jasonwyatt.squeaky.Table {
         private static final String NAME = "todos";
 
         @Override
@@ -115,8 +153,8 @@ public class Todo {
         }
     }
 
-    public static class Loader extends AsyncTaskLoader<List<Todo>> {
-        public Loader(Context context) {
+    static class Loader extends AsyncTaskLoader<List<Todo>> {
+        Loader(Context context) {
             super(context);
         }
 
