@@ -15,13 +15,17 @@ import java.util.Map;
 import co.jasonwyatt.squeaky.util.Logger;
 
 /**
+ * <p>
  * Database is the central class in Squeaky.  Instances of {@link Database} are responsible for
  * managing SQLite tables assigned to them as instances of {@link Table} using
- * {@link Database#addTable(Table)}.<br/><br/>
+ * {@link Database#addTable(Table)}.
+ * </p>
  *
+ * <p>
  * Once all required Tables have been added to the database, a call to {@link Database#prepare()}
  * will trigger any necessary migrations and will place the Database instance in to a state where
  * it is ready to accept queries.
+ * </p>
  */
 public class Database {
     private static final String DEFAULT_VERSIONS_TABLE_NAME = "versions";
@@ -136,6 +140,7 @@ public class Database {
     /**
      * Close the helper and database connections.
      */
+    @SuppressWarnings("WeakerAccess")
     public void close() {
         mHelper.close();
         mWritableDB.close();
@@ -147,6 +152,7 @@ public class Database {
      * Returns whether or not the {@link Database} instance is prepared.
      * @return Whether or not the Database is prepared.
      */
+    @SuppressWarnings("WeakerAccess")
     public boolean isPrepared() {
         return mPrepared;
     }
@@ -207,6 +213,7 @@ public class Database {
      * @param bindArgs Arguments to bind to '?'s in the query.
      * @return Value of the new record's <code>rowid</code>/<code>_id</code> column.
      */
+    @SuppressWarnings("WeakerAccess")
     public synchronized long insert(String stmt, Object... bindArgs) {
         SQLiteStatement statement = getWritableDB().compileStatement(stmt);
         bindArgs(statement, bindArgs);
@@ -312,7 +319,7 @@ public class Database {
             } else if (o instanceof Double) {
                 statement.bindDouble(i+1, (Double) o);
             } else if (o instanceof Float) {
-                statement.bindDouble(i+1, (double)((Float) o).floatValue());
+                statement.bindDouble(i+1, (double) (Float) o);
             } else if (o == null) {
                 statement.bindNull(i+1);
             } else if (o instanceof BlobValue) {
@@ -393,6 +400,7 @@ public class Database {
      * Get a raw SQLiteDatabase connection for writing.
      * @return Raw SQLite Database connection.
      */
+    @SuppressWarnings("WeakerAccess")
     public SQLiteDatabase getWritableDB() {
         if (mWritableDB == null) {
             mWritableDB = mHelper.getWritableDatabase();
@@ -404,6 +412,7 @@ public class Database {
      * Get a raw SQLiteDatabase connection for reading.
      * @return Raw SQLite Database connection.
      */
+    @SuppressWarnings("WeakerAccess")
     public SQLiteDatabase getReadableDB() {
         if (mReadableDB == null) {
             mReadableDB = mHelper.getReadableDatabase();
@@ -415,11 +424,11 @@ public class Database {
      * {@link Table} definition used to define the SQLite table which tracks the current versions of
      * all other {@link Table}s in the database.
      */
-    public static final class VersionsTable extends Table {
+    private static final class VersionsTable extends Table {
         private final Database mDb;
         private final String mName;
 
-        public VersionsTable(Database db, String name) {
+        VersionsTable(Database db, String name) {
             mDb = db;
             mName = name;
         }
@@ -455,7 +464,7 @@ public class Database {
          * @param tableName Name of the table for which to retrieve the version.
          * @return Version of the table with name {@param tableName}
          */
-        public int getTableVersion(SQLiteDatabase sqldb, String tableName) {
+        int getTableVersion(SQLiteDatabase sqldb, String tableName) {
             Cursor c = mDb.querySimple(sqldb, "SELECT version FROM "+getName()+" WHERE table_name = ?", tableName);
             int version = -1;
             while (c.moveToNext()) {
@@ -471,7 +480,7 @@ public class Database {
          * @return Mapping from {@link Table#getName()} to its current version
          *         in the database.
          */
-        public Map<String, Integer> getTableVersions(SQLiteDatabase sqldb) {
+        Map<String, Integer> getTableVersions(SQLiteDatabase sqldb) {
             Cursor c = mDb.querySimple(sqldb, "SELECT table_name, version FROM "+getName());
             HashMap<String, Integer> result = new HashMap<>();
 
