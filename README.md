@@ -22,7 +22,7 @@ Add SRML as a dependency to your app's build.gradle:
 
 ```groovy
 dependencies {
-    compile 'com.github.jasonwyatt:squeaky-android:-SNAPSHOT'
+    compile 'com.github.jasonwyatt:squeaky-android:1.0.0'
 }
 ```
 
