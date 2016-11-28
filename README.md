@@ -1,4 +1,4 @@
-# Squeaky for Android
+# Squeaky for Android [![](https://jitpack.io/v/jasonwyatt/squeaky-android.svg)](https://jitpack.io/#jasonwyatt/squeaky-android)
 
 SQLite is simple and lightweight; it follows that managing SQLite databases on Android should be also.
 
@@ -22,7 +22,7 @@ Add SRML as a dependency to your app's build.gradle:
 
 ```groovy
 dependencies {
-    compile 'com.github.jasonwyatt:squeaky-android:1.0.0'
+    compile 'com.github.jasonwyatt:squeaky-android:1.1.0'
 }
 ```
 
