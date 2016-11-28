@@ -59,7 +59,7 @@ public class Database {
      *               creation/migration and passes those requests on to {@link Database}
      */
     public Database(Context context, String name, Class<? extends DatabaseHelper> helper) {
-        this(context, name, DEFAULT_VERSIONS_TABLE_NAME, DatabaseHelper.class);
+        this(context, name, DEFAULT_VERSIONS_TABLE_NAME, helper);
     }
 
     /**
