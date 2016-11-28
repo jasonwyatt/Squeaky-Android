@@ -5,6 +5,12 @@ package co.jasonwyatt.squeaky;
  */
 public abstract class Table {
     /**
+     * Return DROP_TABLE from {@link #getVersion()} if you wish to have Squeaky drop the table from
+     * the database.
+     */
+    public static final int DROP_TABLE = -1;
+
+    /**
      * Get the name of the table.
      * @return Name of the table.
      */
@@ -15,6 +21,8 @@ public abstract class Table {
      * {@link Database#onUpgrade(android.database.sqlite.SQLiteDatabase)} and
      * {@link Database#onCreate(android.database.sqlite.SQLiteDatabase)} to automatically migrate
      * your table from its current version in the DB to the version returned here.
+     * <p>
+     * If you want to signal Squeaky to drop the table, return {@link #DROP_TABLE}.
      * @return Current version of the table.
      */
     public abstract int getVersion();

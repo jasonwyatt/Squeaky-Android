@@ -348,15 +348,20 @@ public class Database {
         for (Table t : mTables.values()) {
             if (versions.containsKey(t.getName())) {
                 // have a version, need to upgrade?
-                boolean changed = false;
-                for (int currentVersion = versions.get(t.getName()); currentVersion < t.getVersion(); currentVersion++) {
-                    changed = true;
-                    Logger.d("Upgrading", t.getName(), "from", "v"+currentVersion, "to", "v"+(currentVersion+1));
-                    String[] migrateStmts = t.getMigration(currentVersion+1);
-                    updateBatchSimple(db, migrateStmts, null);
-                }
-                if (changed) {
-                    updateSimple(db, "UPDATE "+mVersionsTable.getName()+" SET version = ? WHERE table_name = ?", t.getVersion(), t.getName());
+                if (t.getVersion() == Table.DROP_TABLE) {
+                    updateSimple(db, "DELETE FROM "+mVersionsTable.getName()+" WHERE table_name = ?", t.getName());
+                    updateSimple(db, "DROP TABLE "+t.getName());
+                } else {
+                    boolean changed = false;
+                    for (int currentVersion = versions.get(t.getName()); currentVersion < t.getVersion(); currentVersion++) {
+                        changed = true;
+                        Logger.d("Upgrading", t.getName(), "from", "v" + currentVersion, "to", "v" + (currentVersion + 1));
+                        String[] migrateStmts = t.getMigration(currentVersion + 1);
+                        updateBatchSimple(db, migrateStmts, null);
+                    }
+                    if (changed) {
+                        updateSimple(db, "UPDATE " + mVersionsTable.getName() + " SET version = ? WHERE table_name = ?", t.getVersion(), t.getName());
+                    }
                 }
             } else {
                 // need to create.
