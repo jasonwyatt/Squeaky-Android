@@ -10,5 +10,5 @@ public interface BlobValue {
      * Get the raw bytes intended for a BLOB column in the database.
      * @return Raw bytes for the database.
      */
-    public byte[] getBytes();
+    byte[] getBytes();
 }

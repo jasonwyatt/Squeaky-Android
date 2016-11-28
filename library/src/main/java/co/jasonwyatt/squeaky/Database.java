@@ -173,11 +173,7 @@ public class Database {
             args = new String[bindArgs.length];
             for (int i = 0; i < bindArgs.length; i++) {
                 Object arg = bindArgs[i];
-                if (arg instanceof String) {
-                    args[i] = arg.toString();
-                } else {
-                    args[i] = arg.toString();
-                }
+                args[i] = arg.toString();
             }
         }
 
