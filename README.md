@@ -18,7 +18,7 @@ allprojects {
 }
 ```
 
-Add SRML as a dependency to your app's build.gradle:
+Add Squeaky-Android as a dependency to your app's build.gradle:
 
 ```groovy
 dependencies {
