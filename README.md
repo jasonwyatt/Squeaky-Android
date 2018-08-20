@@ -22,7 +22,7 @@ Add Squeaky-Android as a dependency to your app's build.gradle:
 
 ```groovy
 dependencies {
-    compile 'com.github.jasonwyatt:squeaky-android:1.1.0'
+    compile 'com.github.jasonwyatt:squeaky-android:1.2.0'
 }
 ```
 
