@@ -1,9 +1,13 @@
 package co.jasonwyatt.squeaky.util;
 
 import android.database.Cursor;
+import android.support.annotation.IntDef;
 import android.util.Log;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import co.jasonwyatt.squeaky.Database;
 import co.jasonwyatt.squeaky.Table;
@@ -12,44 +16,80 @@ import co.jasonwyatt.squeaky.Table;
  * Created by jason on 2/25/15.
  */
 public class Logger {
+    @Retention(RetentionPolicy.SOURCE)
+    @IntDef({Log.ASSERT, Log.DEBUG, Log.ERROR, Log.INFO, Log.VERBOSE, Log.WARN})
+    public @interface LogLevel {}
+
     public static final String TAG = "Squeaky";
     private static boolean sEnabled = true;
+    private static AtomicInteger sLogLevel = new AtomicInteger(Log.VERBOSE);
 
+    /**
+     * Gets whether or not the logger is enabled.
+     * @return True if logger is enabled.
+     * @deprecated Use {@link #enabled(int)} instead.
+     */
+    @Deprecated
     public static boolean enabled() {
-        return sEnabled;
+        return enabled(Log.DEBUG);
+    }
+
+    /**
+     * Gets whether or not the logger is enabled at the specified priority..
+     * @param level Level of logging to test against.
+     * @return True if it's enabled.
+     */
+    public static boolean enabled(@LogLevel int level) {
+        return sEnabled && sLogLevel.get() <= level;
     }
 
     public static void setEnabled(boolean enabled) {
         sEnabled = enabled;
     }
 
+    public static void setLevel(@LogLevel int level) {
+        sLogLevel.set(level);
+    }
+
     public static void d(Object...pieces) {
-        if (!enabled()) {
+        if (!enabled(Log.DEBUG)) {
             return;
         }
         Log.d(TAG, join(pieces));
     }
 
     public static void e(Object...pieces) {
+        if (!enabled(Log.ERROR)) {
+            return;
+        }
         Log.e(TAG, join(pieces));
     }
 
     public static void e(Throwable err, Object...pieces) {
+        if (!enabled(Log.ERROR)) {
+            return;
+        }
         Log.e(TAG, join(pieces), err);
     }
 
     public static void i(Object...pieces) {
-        if (!enabled()) {
+        if (!enabled(Log.INFO)) {
             return;
         }
         Log.i(TAG, join(pieces));
     }
 
     public static void w(Object...pieces) {
+        if (!enabled(Log.WARN)) {
+            return;
+        }
         Log.w(TAG, join(pieces));
     }
 
     public static void w(Throwable err, Object...pieces) {
+        if (!enabled(Log.WARN)) {
+            return;
+        }
         Log.w(TAG, join(pieces), err);
     }
 

@@ -5,6 +5,7 @@ import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteStatement;
+import android.util.Log;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -419,6 +420,10 @@ public class Database {
             mReadableDB = mHelper.getReadableDatabase();
         }
         return mReadableDB;
+    }
+
+    public void setLogLevel(@Logger.LogLevel int level) {
+        Logger.setLevel(level);
     }
 
     /**
